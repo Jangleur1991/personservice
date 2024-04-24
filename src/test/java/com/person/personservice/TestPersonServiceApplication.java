@@ -1,13 +1,12 @@
 package com.person.personservice;
 
+import com.person.personservice.config.TestConfig;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.test.context.TestConfiguration;
 
-@TestConfiguration(proxyBeanMethods = false)
 public class TestPersonServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.from(PersonServiceApplication::main).with(TestPersonServiceApplication.class).run(args);
+		SpringApplication.from(PersonServiceApplication::main).with(TestConfig.class).run(args);
 	}
 
 }
