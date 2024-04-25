@@ -1,4 +1,4 @@
-package com.person.personservice.repository;
+package com.person.personservice.persistence.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;

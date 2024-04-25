@@ -15,7 +15,3 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-
-server:
-  servlet:
-    context-path: /api
