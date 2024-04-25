@@ -35,13 +35,14 @@ class PersonControllerTest {
     void testThatGetReturnsAllPerson() throws Exception {
         //given
         PersonDTO person = createPersonDto();
+        PageRequest pageable = PageRequest.of(0, PAGE_SIZE);
 
         Page<PersonDTO> personPage = new PageImpl<>(
                 List.of(person),
-                PageRequest.of(0, PAGE_SIZE),
+                pageable,
                 1
         );
-        given(personService.getAllPerson()).willReturn(personPage);
+        given(personService.getAllPerson(pageable)).willReturn(personPage);
 
         //when / then
         mockMvc.perform(get("/person"))

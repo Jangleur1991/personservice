@@ -37,17 +37,19 @@ class PersonServiceTest {
         person.setName("testperson");
         person.setParents(new LinkedHashSet<>());
 
+        PageRequest pageable = PageRequest.of(0, PAGE_SIZE);
+
         Page<Person> personPage = new PageImpl<>(
                 List.of(person),
-                PageRequest.of(0, PAGE_SIZE),
+                pageable,
                 1
         );
 
-        given(personRepository.findAll(Pageable.ofSize(PAGE_SIZE)))
+        given(personRepository.findAll(pageable))
                 .willReturn(personPage);
 
         //when
-        Page<PersonDTO> result = personService.getAllPerson();
+        Page<PersonDTO> result = personService.getAllPerson(pageable);
 
         //then
         assertThat(result.isEmpty()).isFalse();
