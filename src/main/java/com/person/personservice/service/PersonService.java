@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,10 @@ public class PersonService {
         return person.map(this::mapPersonToPersonDTO);
     }
 
+    public Optional<PersonDTO> getById(long id) {
+        return personRepository.findById(id).map(this::mapPersonToPersonDTO);
+    }
+
     private Pageable processPageable(Pageable pageable) {
         return (pageable.getPageSize() > PAGE_SIZE)
                 ? PageRequest.of(pageable.getPageNumber(), PAGE_SIZE, pageable.getSort())
@@ -39,4 +44,5 @@ public class PersonService {
                 .collect(Collectors.toSet());
         return new PersonDTO(person.getName(), parentsIds);
     }
+
 }

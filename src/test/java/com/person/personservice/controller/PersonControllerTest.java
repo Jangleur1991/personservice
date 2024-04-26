@@ -12,7 +12,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -20,13 +23,13 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.assertj.core.api.Assertions.assertThat;
 
 
 @WebMvcTest
 class PersonControllerTest {
 
     private static final int PAGE_SIZE = 5;
+    private static final String PERSON_NAME = "testperson";
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,7 +54,7 @@ class PersonControllerTest {
         mockMvc.perform(get("/person"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)))
-                .andExpect(jsonPath("$.content[0].name").value("testperson"))
+                .andExpect(jsonPath("$.content[0].name").value(PERSON_NAME))
                 .andExpect(jsonPath("$.content[0].parentIds").isEmpty());
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
@@ -63,8 +66,34 @@ class PersonControllerTest {
         assertThat(pageRequest.getSort()).isEqualTo(Sort.unsorted());
     }
 
+    @Test
+    void testThatIfPersonCanBeFoundGetPersonByIdReturnsPerson() throws Exception {
+        //given
+        PersonDTO personDTO = createPersonDto();
+        given(personService.getById(1)).willReturn(Optional.of(personDTO));
 
-    private PersonDTO createPersonDto() {
-        return new PersonDTO("testperson", new LinkedHashSet<>());
+        //when / then
+        mockMvc.perform(get("/person/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", aMapWithSize(2)))
+                .andExpect(jsonPath("$.name").value(PERSON_NAME))
+                .andExpect(jsonPath("$.parentIds").isEmpty());
+
+    }
+
+    @Test
+    void testThateIfPersonCandNotBeFoundGetPersonByIdReturnsNotFound() throws Exception {
+        //given
+        given(personService.getById(1)).willReturn(Optional.empty());
+
+        //when / then
+        mockMvc.perform(get("/person/1"))
+                .andExpect(status().isNotFound());
+
+    }
+
+
+    private static PersonDTO createPersonDto() {
+        return new PersonDTO(PERSON_NAME, new LinkedHashSet<>());
     }
 }
