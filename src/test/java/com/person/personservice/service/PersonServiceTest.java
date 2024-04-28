@@ -13,11 +13,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith( MockitoExtension.class )
@@ -85,13 +89,42 @@ class PersonServiceTest {
 
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void testSavePerson() {
+        //given
+        var person = createPerson();
+        given(personRepository.findAllById(any())).willReturn(person.getParents().stream().toList());
+        given(personRepository.save(any(Person.class))).willReturn(person);
+
+        var personDTO = new PersonDTO(
+                person.getId(),
+                person.getName(),
+                person.getParents().stream().map(Person::getId).collect(Collectors.toSet())
+        );
+
+        //when
+        PersonDTO result = personService.savePerson(personDTO);
+
+        //then
+        assertNotNull(result);
+        assertThat(result).isEqualTo(personDTO);
+    }
+
     @NotNull
     private static Person createPerson() {
-        Person person = new Person();
-        person.setId(1);
-        person.setName(PERSON_NAME);
-        person.setParents(new LinkedHashSet<>());
-        return person;
+        return Person.builder()
+                .id(3)
+                .name(PERSON_NAME)
+                .parents(createParents())
+                .build();
+    }
+
+    private static Set<Person> createParents() {
+        return Stream.of(
+                Person.builder().id(1).name("TestParent1").build(),
+                Person.builder().id(2).name("TestParent2").build()
+        ).collect(Collectors.toSet());
     }
 
 }

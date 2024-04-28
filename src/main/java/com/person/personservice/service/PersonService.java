@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,6 +32,15 @@ public class PersonService {
         return personRepository.findById(id).map(this::mapPersonToPersonDTO);
     }
 
+    public PersonDTO savePerson(PersonDTO personDTO) {
+        Set<Person> parents = new HashSet<>(personRepository.findAllById(personDTO.parentIds()));
+        var person = Person.builder()
+                .name(personDTO.name())
+                .parents(parents)
+                .build();
+        return mapPersonToPersonDTO(personRepository.save(person));
+    }
+
     private Pageable processPageable(Pageable pageable) {
         return (pageable.getPageSize() > PAGE_SIZE)
                 ? PageRequest.of(pageable.getPageNumber(), PAGE_SIZE, pageable.getSort())
@@ -42,7 +52,7 @@ public class PersonService {
                 .stream()
                 .map(Person::getId)
                 .collect(Collectors.toSet());
-        return new PersonDTO(person.getName(), parentsIds);
+        return new PersonDTO(person.getId(), person.getName(), parentsIds);
     }
 
 }
