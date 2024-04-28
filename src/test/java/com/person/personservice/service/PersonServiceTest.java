@@ -4,6 +4,7 @@ import com.person.personservice.model.PersonDTO;
 import com.person.personservice.persistence.domain.Person;
 import com.person.personservice.persistence.repository.PersonRepository;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,17 +31,27 @@ class PersonServiceTest {
     private static final int PAGE_SIZE = 5;
     private static final long ID = 1L;
     private static final String PERSON_NAME = "testperson";
+
+    private Person person;
+
+    private PersonDTO personDTO;
+
     @InjectMocks
     private PersonService personService;
 
     @Mock
     private PersonRepository personRepository;
 
+    @BeforeEach
+    void setup() {
+        person = createPerson();
+        personDTO = mapPersonToPersonDTO(person);
+    }
+
+
     @Test
     void testThatGetAllPersonReturnsAllPerson() {
         //given
-        Person person = createPerson();
-
         PageRequest pageable = PageRequest.of(0, PAGE_SIZE);
 
         Page<Person> personPage = new PageImpl<>(
@@ -66,7 +77,6 @@ class PersonServiceTest {
     @Test
     void testThatIfPersonExistsInTableGetByIdReturnsPerson() {
         //given
-        Person person = createPerson();
         given(personRepository.findById(ID)).willReturn(Optional.of(person));
 
         //when
@@ -90,18 +100,11 @@ class PersonServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testSavePerson() {
         //given
-        var person = createPerson();
-        given(personRepository.findAllById(any())).willReturn(person.getParents().stream().toList());
+        given(personRepository.findAllById(personDTO.parentIds())).willReturn(person.getParents().stream().toList());
         given(personRepository.save(any(Person.class))).willReturn(person);
 
-        var personDTO = new PersonDTO(
-                person.getId(),
-                person.getName(),
-                person.getParents().stream().map(Person::getId).collect(Collectors.toSet())
-        );
 
         //when
         PersonDTO result = personService.savePerson(personDTO);
@@ -109,6 +112,20 @@ class PersonServiceTest {
         //then
         assertNotNull(result);
         assertThat(result).isEqualTo(personDTO);
+    }
+
+    @Test
+    void testUpdatePerson() {
+        //given
+        var updateName = "updatedName";
+        var updatedPersonDto = new PersonDTO(personDTO.id(), updateName, personDTO.parentIds());
+
+        //when
+        var result = personService.updatePerson(personDTO.id(), updatedPersonDto);
+
+        //then
+        assertThat(result).isEqualTo(updatedPersonDto);
+
     }
 
     @NotNull
@@ -125,6 +142,14 @@ class PersonServiceTest {
                 Person.builder().id(1).name("TestParent1").build(),
                 Person.builder().id(2).name("TestParent2").build()
         ).collect(Collectors.toSet());
+    }
+
+    private PersonDTO mapPersonToPersonDTO(Person person) {
+        Set<Long> parentsIds = person.getParents()
+                .stream()
+                .map(Person::getId)
+                .collect(Collectors.toSet());
+        return new PersonDTO(person.getId(), person.getName(), parentsIds);
     }
 
 }

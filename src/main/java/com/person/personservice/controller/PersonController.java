@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
+
 @RestController
 @RequiredArgsConstructor
 public class PersonController {
@@ -34,6 +36,13 @@ public class PersonController {
                 .build()
                 .toUri();
         return ResponseEntity.created(uri).body(savedPersonDto);
+    }
+
+    @PutMapping("/person/{id}")
+    public ResponseEntity<PersonDTO> updatePerson(@PathVariable long id, @RequestBody PersonDTO personDTO) throws IOException {
+        return personService.updatePerson(id, personDTO)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new IOException("Something went terrible wrong :("));
     }
 
 }

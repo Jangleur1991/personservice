@@ -7,7 +7,7 @@ REST resources:
   * Person
   * Parents
 
-REST Endpoints:
+REST endpoints:
 * retrieve all person: GET /api/person
 * retrieve a person by id: GET /api/person/{id}
 * create a person: POST /api/person

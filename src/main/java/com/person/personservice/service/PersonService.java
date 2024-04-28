@@ -13,6 +13,9 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.person.personservice.utils.Utils.mergeSets;
 
 @Service
 @RequiredArgsConstructor
@@ -35,10 +38,23 @@ public class PersonService {
     public PersonDTO savePerson(PersonDTO personDTO) {
         Set<Person> parents = new HashSet<>(personRepository.findAllById(personDTO.parentIds()));
         var person = Person.builder()
+                .id(personDTO.id()) //TODO: What to do about that???
                 .name(personDTO.name())
                 .parents(parents)
                 .build();
         return mapPersonToPersonDTO(personRepository.save(person));
+    }
+
+    public Optional<PersonDTO> updatePerson(long id, PersonDTO personDTO) {
+        return personRepository.findById(id)
+                .map(this::mapPersonToPersonDTO)
+                .map(person ->
+                        new PersonDTO(
+                                id,
+                                (null != personDTO.name()) ? personDTO.name() : person.name(),
+                                mergeSets(person.parentIds(), personDTO.parentIds())
+                        ))
+                .map(this::savePerson);
     }
 
     private Pageable processPageable(Pageable pageable) {
