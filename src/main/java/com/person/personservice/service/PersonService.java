@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.person.personservice.utils.Utils.mergeSets;
 
@@ -38,7 +37,7 @@ public class PersonService {
     public PersonDTO savePerson(PersonDTO personDTO) {
         Set<Person> parents = new HashSet<>(personRepository.findAllById(personDTO.parentIds()));
         var person = Person.builder()
-                .id(personDTO.id()) //TODO: What to do about that???
+                .id(personDTO.id()) //TODO: What to do about that??? DTOs are not supposed to have this information.
                 .name(personDTO.name())
                 .parents(parents)
                 .build();
