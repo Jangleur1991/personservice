@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,10 +39,17 @@ public class PersonController {
     }
 
     @PutMapping("/person/{id}")
-    public ResponseEntity<PersonDTO> updatePerson(@PathVariable long id, @RequestBody PersonDTO personDTO) throws IOException {
+    public ResponseEntity<PersonDTO> updatePerson(@PathVariable long id, @RequestBody PersonDTO personDTO) throws Exception {
         return personService.updatePerson(id, personDTO)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new IOException("Something went terrible wrong :("));
+                .orElseThrow(() -> new Exception("Something went terrible wrong :("));
+    }
+
+    @PutMapping("/person/{id}/parents")
+    public ResponseEntity<PersonDTO> updateParents(@PathVariable long id, @RequestBody List<Long> parentIds) throws Exception {
+        return personService.updateParents(id, parentIds)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new Exception("Something went terrible wrong :("));
     }
 
 }

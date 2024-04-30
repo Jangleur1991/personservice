@@ -7,9 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,6 +57,15 @@ public class PersonService {
                                 mergeSets(person.parentIds(), personDTO.parentIds())
                         ))
                 .map(this::savePerson);
+    }
+
+    public Optional<PersonDTO> updateParents(long id, List<Long> parentIds) {
+        return personRepository.findById(id)
+                .map(person -> new PersonDTO(
+                        person.getId(),
+                        person.getName(),
+                        new HashSet<>(parentIds))
+                ).map(this::savePerson);
     }
 
     private Pageable processPageable(Pageable pageable) {
