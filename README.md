@@ -12,3 +12,4 @@ REST endpoints:
 * retrieve a person by id: GET /api/person/{id}
 * create a person: POST /api/person
 * update a person: PUT /api/person/{id}
+* update a person parents: PUT /api/person/{id}/parents

@@ -38,11 +38,10 @@ public class PersonService {
     }
 
     public PersonDTO savePerson(PersonDTO personDTO) {
-        Set<Person> parents = new HashSet<>(personRepository.findAllById(personDTO.parentIds()));
         var person = Person.builder()
                 .id(personDTO.id()) //TODO: What to do about that??? DTOs are not supposed to have this information.
                 .name(personDTO.name())
-                .parents(parents)
+                .parents(retrieveParents(personDTO))
                 .build();
         return mapPersonToPersonDTO(personRepository.save(person));
     }
@@ -80,6 +79,15 @@ public class PersonService {
                 .map(Person::getId)
                 .collect(Collectors.toSet());
         return new PersonDTO(person.getId(), person.getName(), parentsIds);
+    }
+
+    private Set<Person> retrieveParents(PersonDTO personDTO) {
+        Set<Long> parentIds = personDTO.parentIds();
+        Set<Person> parents = new HashSet<>();
+        if (null != parentIds) {
+            parents.addAll(personRepository.findAllById(personDTO.parentIds()));
+        }
+        return parents;
     }
 
 }
