@@ -19,7 +19,7 @@ public class PersonController {
 
     @GetMapping("/person")
     public Page<PersonDTO> getAllPerson(Pageable pagination) {
-       return personService.getAllPerson(pagination);
+        return personService.getAllPerson(pagination);
     }
 
     @GetMapping("/person/{id}")
@@ -29,13 +29,13 @@ public class PersonController {
     }
 
     @PostMapping("/person")
-    public ResponseEntity<PersonDTO> createPerson(@RequestBody PersonDTO personDTO) {
-        var savedPersonDto = personService.savePerson(personDTO);
+    public ResponseEntity<?> createPerson(@RequestBody PersonDTO personDTO) {
+        var personId = personService.savePerson(personDTO);
         var uri = UriComponentsBuilder.fromUriString("/api")
-                .pathSegment("person", String.valueOf(savedPersonDto.id()))
+                .pathSegment("person", String.valueOf(personId))
                 .build()
                 .toUri();
-        return ResponseEntity.created(uri).body(savedPersonDto);
+        return ResponseEntity.created(uri).build();
     }
 
     @PutMapping("/person/{id}")

@@ -7,9 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
@@ -37,34 +35,43 @@ public class PersonService {
         return personRepository.findById(id).map(this::mapPersonToPersonDTO);
     }
 
-    public PersonDTO savePerson(PersonDTO personDTO) {
-        var person = Person.builder()
-                .id(personDTO.id()) //TODO: What to do about that??? DTOs are not supposed to have this information.
+    public long savePerson(PersonDTO personDTO) {
+        return savePerson(null, personDTO);
+    }
+
+    private long savePerson(Long id, PersonDTO personDTO) {
+        var personBuilder = Person.builder()
                 .name(personDTO.name())
-                .parents(retrieveParents(personDTO))
-                .build();
-        return mapPersonToPersonDTO(personRepository.save(person));
+                .parents(retrieveParents(personDTO));
+
+        if (null != id) {
+            personBuilder.id(id);
+        }
+
+        return personRepository.save(personBuilder.build()).getId();
     }
 
     public Optional<PersonDTO> updatePerson(long id, PersonDTO personDTO) {
         return personRepository.findById(id)
                 .map(this::mapPersonToPersonDTO)
-                .map(person ->
-                        new PersonDTO(
-                                id,
-                                (null != personDTO.name()) ? personDTO.name() : person.name(),
-                                mergeSets(person.parentIds(), personDTO.parentIds())
-                        ))
-                .map(this::savePerson);
+                .map(person -> {
+                    String updatedName = (null != personDTO.name()) ? personDTO.name() : person.name();
+                    Set<Long> updatedParentIds = mergeSets(person.parentIds(), personDTO.parentIds());
+                    return new PersonDTO(updatedName, updatedParentIds);
+                })
+                .map(updatedPersonDTO -> {
+                    savePerson(id, updatedPersonDTO);
+                    return updatedPersonDTO;
+                });
     }
 
     public Optional<PersonDTO> updateParents(long id, List<Long> parentIds) {
         return personRepository.findById(id)
-                .map(person -> new PersonDTO(
-                        person.getId(),
-                        person.getName(),
-                        new HashSet<>(parentIds))
-                ).map(this::savePerson);
+                .map(person -> new PersonDTO(person.getName(), new HashSet<>(parentIds)))
+                .map(updatedPerson -> {
+                    savePerson(id, updatedPerson);
+                    return updatedPerson;
+                });
     }
 
     private Pageable processPageable(Pageable pageable) {
@@ -78,7 +85,7 @@ public class PersonService {
                 .stream()
                 .map(Person::getId)
                 .collect(Collectors.toSet());
-        return new PersonDTO(person.getId(), person.getName(), parentsIds);
+        return new PersonDTO(person.getName(), parentsIds);
     }
 
     private Set<Person> retrieveParents(PersonDTO personDTO) {

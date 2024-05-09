@@ -22,15 +22,14 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith( MockitoExtension.class )
 class PersonServiceTest {
 
     private static final int PAGE_SIZE = 5;
-    private static final long ID = 1L;
+    private static final long ID = 3L;
     private static final String PERSON_NAME = "testperson";
 
     private Person person;
@@ -116,7 +115,6 @@ class PersonServiceTest {
     void testSavePerson() {
         //given
         given(personRepository.findAllById(personDTO.parentIds())).willReturn(person.getParents().stream().toList());
-
         given(personRepository.save(argThat(p ->
                 p.getName().equals(person.getName()) &&
                 p.getId() == p.getId() &&
@@ -124,24 +122,22 @@ class PersonServiceTest {
                 .willReturn(person);
 
         //when
-        PersonDTO result = personService.savePerson(personDTO);
+        long result = personService.savePerson(personDTO);
 
         //then
-        assertNotNull(result);
-        assertThat(result).isEqualTo(personDTO);
+        assertThat(result).isEqualTo(ID);
     }
 
     @Test
     void testUpdateNameOfAPerson() {
         //given
-        long personId = personDTO.id();
         Set<Long> parentIds = personDTO.parentIds();
         var updateName = "updatedName";
-        var updatedPerson = new Person(personId, updateName, person.getParents());
-        var updatedPersonDto = new PersonDTO(personId, updateName, parentIds);
+        var updatedPerson = new Person(ID, updateName, person.getParents());
+        var updatedPersonDto = new PersonDTO(updateName, parentIds);
 
 
-        given(personRepository.findById(personId)).willReturn(Optional.of(person));
+        given(personRepository.findById(ID)).willReturn(Optional.of(person));
         given(personRepository.findAllById(parentIds)).
                 willReturn(updatedPerson.getParents().stream().toList());
 
@@ -153,7 +149,7 @@ class PersonServiceTest {
 
 
         //when
-        var result = personService.updatePerson(personId, updatedPersonDto);
+        var result = personService.updatePerson(ID, updatedPersonDto);
 
         //then
         assertThat(result.isEmpty()).isFalse();
@@ -164,7 +160,7 @@ class PersonServiceTest {
     @NotNull
     private static Person createPerson() {
         return Person.builder()
-                .id(3)
+                .id(ID)
                 .name(PERSON_NAME)
                 .parents(createParents())
                 .build();
@@ -182,7 +178,7 @@ class PersonServiceTest {
                 .stream()
                 .map(Person::getId)
                 .collect(Collectors.toSet());
-        return new PersonDTO(person.getId(), person.getName(), parentsIds);
+        return new PersonDTO( person.getName(), parentsIds);
     }
 
 }

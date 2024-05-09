@@ -33,6 +33,7 @@ class PersonControllerTest {
 
     private static final int PAGE_SIZE = 5;
     private static final String PERSON_NAME = "testperson";
+    public static final long ID = 1L;
 
     private PersonDTO personDTO;
 
@@ -103,7 +104,7 @@ class PersonControllerTest {
     @Test
     void testThatCreatePersonReturnsSavedPerson() throws Exception {
         //given
-        given(personService.savePerson(personDTO)).willReturn(personDTO);
+        given(personService.savePerson(personDTO)).willReturn(ID);
 
         //when/then
         mockMvc.perform(post("/person")
@@ -111,16 +112,12 @@ class PersonControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/api/person/1"))
-                .andExpect(jsonPath("$", aMapWithSize(3)))
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value(PERSON_NAME))
-                .andExpect(jsonPath("$.parentIds").isEmpty());
+                .andExpect(header().string("Location", "/api/person/1"));
 
     }
 
     private static PersonDTO createPersonDto() {
-        return new PersonDTO(1, PERSON_NAME, new LinkedHashSet<>());
+        return new PersonDTO(PERSON_NAME, new LinkedHashSet<>());
     }
 
 }
