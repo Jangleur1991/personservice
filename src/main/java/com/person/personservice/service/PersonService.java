@@ -51,14 +51,10 @@ public class PersonService {
         return personRepository.save(personBuilder.build()).getId();
     }
 
-    public Optional<PersonDTO> updatePerson(long id, PersonDTO personDTO) {
+    public Optional<PersonDTO> updatePerson(long id, PersonDTO updateRequest) {
         return personRepository.findById(id)
                 .map(this::mapPersonToPersonDTO)
-                .map(person -> {
-                    String updatedName = (null != personDTO.name()) ? personDTO.name() : person.name();
-                    Set<Long> updatedParentIds = mergeSets(person.parentIds(), personDTO.parentIds());
-                    return new PersonDTO(updatedName, updatedParentIds);
-                })
+                .map(personDTO -> updatePersonDTO(personDTO, updateRequest))
                 .map(updatedPersonDTO -> {
                     savePerson(id, updatedPersonDTO);
                     return updatedPersonDTO;
@@ -86,6 +82,14 @@ public class PersonService {
                 .map(Person::getId)
                 .collect(Collectors.toSet());
         return new PersonDTO(person.getName(), parentsIds);
+    }
+
+    private PersonDTO updatePersonDTO(PersonDTO personDTO, PersonDTO updateRequest) {
+        String updatedName = (null != updateRequest.name()) ? updateRequest.name() : personDTO.name();
+        Set<Long> updatedParentIds = (null != updateRequest.parentIds())
+                ? mergeSets(personDTO.parentIds(), updateRequest.parentIds())
+                : personDTO.parentIds();
+        return new PersonDTO(updatedName, updatedParentIds);
     }
 
     private Set<Person> retrieveParents(PersonDTO personDTO) {
